@@ -1,0 +1,34 @@
+# Node.js modules
+node_modules/
+
+# Environnement
+.env
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Système d'exploitation
+.DS_Store
+Thumbs.db
+
+# Répertoires de compilation (si vous utilisez TypeScript ou d'autres préprocesseurs)
+dist/
+build/
+
+# Fichiers de tests
+test/
+tests/
+
+# Fichiers temporaires ou de cache
+*.log
+*.swp
+*.swo
+
+# Fichiers générés par l'éditeur
+.vscode/
+.idea/
+
+# Autres fichiers à ignorer
+*.tgz
