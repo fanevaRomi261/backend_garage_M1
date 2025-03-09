@@ -7,6 +7,7 @@ const UtilisateurSchema = new mongoose.Schema(
     mail: { type: String, required: true },
     pwd: { type: String, required: true },
     dtn: { type: Date, required: true },
+    contact: { type: String, required: true },
     profil_id: { type: mongoose.Schema.Types.ObjectId, ref: "Profils", required: true },
     vehicules_id : [{ type : mongoose.Schema.Types.ObjectId , ref: 'Vehicules' }]
   },
