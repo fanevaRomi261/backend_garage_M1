@@ -5,7 +5,8 @@ const VehiculeSchema = new mongoose.Schema(
     immatriculation: { type: String, required: true },
     modele: { type: String, required: true },
     marque: { type: String, required: true },
-    type_vehicule_id: { type: mongoose.Schema.Types.ObjectId, ref: "TypeVehicules", required: true }
+    type_vehicule_id: { type: mongoose.Schema.Types.ObjectId, ref: "TypeVehicules", required: true },
+    utilisateur_id : { type : mongoose.Schema.Types.ObjectId , ref: 'Utilisateurs' }
   },
   { timestamps: true }
 );

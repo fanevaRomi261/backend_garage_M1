@@ -9,7 +9,7 @@ const UtilisateurSchema = new mongoose.Schema(
     dtn: { type: Date, required: true },
     contact: { type: String, required: true },
     profil_id: { type: mongoose.Schema.Types.ObjectId, ref: "Profils", required: true },
-    vehicules_id : [{ type : mongoose.Schema.Types.ObjectId , ref: 'Vehicules' }]
+    // vehicules_id : [{ type : mongoose.Schema.Types.ObjectId , ref: 'Vehicules' }]
   },
   { timestamps: true }
 );
