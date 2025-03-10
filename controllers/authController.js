@@ -1,6 +1,6 @@
 const express = require("express");
-const router = express.Router();
 const Utilisateur = require("../models/Utilisateur");
+const Profil = require("../models/Profil");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -20,7 +20,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Mot de passe incorrect" });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
+    const token = jwt.sign({ userId: user._id, userProfilId: user.profil_id._id }, process.env.JWT_SECRET_KEY, {
       expiresIn: "1h",
     });
 
@@ -36,7 +36,7 @@ exports.login = async (req, res) => {
 
 // Inscription
 exports.register = async (req, res) => {
-  const { nom, prenom, mail, pwd, dtn, profil_id } = req.body;
+  const { nom, prenom, mail, pwd, dtn,contact } = req.body;
 
   try {
     const existingUser = await Utilisateur.findOne({ mail });
@@ -47,13 +47,21 @@ exports.register = async (req, res) => {
     const saltRounds = 10;
     const hashedPwd = await bcrypt.hash(pwd, saltRounds);
 
+    const profil = await Profil.findOne({ libelle: { $regex: /^client$/i } });
+    if (!profil) {
+      return res.status(400).json({ message: "Profil 'Client' non trouvé" });
+    }
+
+    // console.log(profil._id);
+
     const newUser = new Utilisateur({
       nom,
       prenom,
       mail,
       pwd: hashedPwd,
       dtn,
-      profil_id,
+      contact,
+      profil_id : profil._id,
     });
 
     await newUser.save();
