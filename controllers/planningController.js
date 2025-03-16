@@ -2,28 +2,25 @@ const express = require("express");
 const router = express.Router();
 const RendezVous = require("../models/RendezVous");
 const Utilisateur = require("../models/Utilisateur");
-const Profil = require("../models/Profil");
-
-const findMecanicienLibre = async(date) =>{
-    const profil = await Profil.findOne({libelle: 'Mécanicien'});
-    const mecaniciens = await Utilisateur.find({profil_id: profil._id});
-    for(meca in mecaniciens){
-        console.log(meca.nom);
-    }
-};
-
-const proposeHeureRendezVous = (date) =>{
-    
-} 
 
 
-router.post("/add",async(req,res)=>{
+exports.getAllMecanicien = async(req,res) => {
     try{
-        const rdv = new RendezVous(req.body);
-        rdv.save();
-        res.status(201).json(rdv);
+        const allUtilisateur = await Utilisateur.find().populate("profil_id");
+        const mecaniciens = allUtilisateur.filter(meca => meca.profil_id.libelle === "Mécanicien");
+        res.json(mecaniciens);
     }catch(error){
-        res.status(400).json({message: error.message});
+        res.status(500).json({ message: error.message });
     }
-});
+}
+
+exports.getTempsLibreMecanicien = async(req, res) =>{
+    try {
+        const {date_rdv} = req.body;
+
+
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+}
 

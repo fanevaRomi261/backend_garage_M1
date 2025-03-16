@@ -19,8 +19,9 @@ mongoose
   .catch((err) => console.log(err));
 
 // Routes
-app.use("/auth", require("./routes/authRoutes"));
-
+// app.use("/auth", require("./routes/authRoutes"));
+app.use("/planning", require("./routes/planningRoute"));
+app.use("/service" , require("./routes/serviceRoute"));
 
 app.listen(PORT, () =>
   console.log(`Serveur démarré sur le port

@@ -8,4 +8,4 @@ router.post("/login",authController.login);
 // Inscription
 router.post("/register",authController.register);
 
-module.exports = router;
+
