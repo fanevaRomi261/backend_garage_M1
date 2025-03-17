@@ -6,4 +6,10 @@ const { verifToken } = require("../middlewares/authMiddleware");
 // getAllMeca
 router.get("/mecanicien" , planningController.getAllMecanicien);
 
+router.get("/rendezvous", planningController.getAllRendezVous);
+
+router.get("/rendezvousdate" , planningController.getRendezVousFromDate);
+
+router.get("/creneau" , planningController.getTempsLibreMecanicien);
+
 module.exports = router;
