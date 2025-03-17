@@ -24,6 +24,5 @@ app.use("/planning", require("./routes/planningRoute"));
 app.use("/service" , require("./routes/serviceRoute"));
 
 app.listen(PORT, () =>
-  console.log(`Serveur démarré sur le port
-${PORT}`)
+  console.log(`Serveur démarré sur : http://localhost:${PORT}`)
 );

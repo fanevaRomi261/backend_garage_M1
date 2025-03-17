@@ -17,10 +17,21 @@ exports.getAllMecanicien = async(req,res) => {
 exports.getTempsLibreMecanicien = async(req, res) =>{
     try {
         const {date_rdv} = req.body;
-
-
+        const mecas = await this.getAllMecanicien();
+        
     } catch (error) {
         res.status(500).json({message: error.message});
+    }
+}
+
+
+
+exports.insertRendezVous = async(req,res) =>{
+    try {
+        const {client_id,heure_rdv,date_rdv,service_id} = req.body;
+
+    } catch (error) {
+        res.status(400).json({message : error.message});
     }
 }
 
