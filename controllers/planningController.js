@@ -17,6 +17,18 @@ const getRendezVousByDate = async (date) => {
         .populate("client_id");
 };
 
+const getAllMecanicien = async () =>{
+    const allUtilisateur = await Utilisateur.find().populate("profil_id");
+    const mecaniciens = allUtilisateur.filter(meca => meca.profil_id.libelle === "Mécanicien");
+   return mecaniciens;
+}
+
+const getAllRendezVousMecanicienByDate = async(date) =>{
+    const allMeca = await getAllMecanicien();
+    
+};
+
+
 const convertTimeToMin = (time) => {
     const sumMinutes = (time.hours * 60 ) + time.minutes;
     return sumMinutes;
@@ -36,17 +48,14 @@ const findCreneauLibre = (tabIntervalles) =>{
     const heureDebutMatin = 480; // 8h
     const heureFinMatin = 720; // 12h
     const heureDebutAprem = 840; // 14h
-    const heureFinAprem = 1080; // 18h
-
-    
+    const heureFinAprem = 1080; // 18h    
 }
 
 
 
 exports.getAllMecanicien = async(req,res) => {
     try{
-        const allUtilisateur = await Utilisateur.find().populate("profil_id");
-        const mecaniciens = allUtilisateur.filter(meca => meca.profil_id.libelle === "Mécanicien");
+        const mecaniciens = getAllMecanicien();
         res.json(mecaniciens);
     }catch(error){
         res.status(500).json({ message: error.message });
