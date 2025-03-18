@@ -21,11 +21,12 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign({ userId: user._id, userProfilId: user.profil_id._id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "1h",
+      expiresIn: "5h",
     });
 
     res.json({
       message: "Connexion réussie",
+      userId: user._id,
       token,
     });
   } catch (error) {
@@ -68,7 +69,7 @@ exports.register = async (req, res) => {
 
     res.status(201).json({ message: "Inscription réussie !" });
   } catch (error) {
-    console.error("Erreur lors de l'inscription :", error);
+    console.error("Erreur lors de l'inscription :", error.message);
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
