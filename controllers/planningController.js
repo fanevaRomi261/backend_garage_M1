@@ -29,6 +29,16 @@ const convertTimeToMin = (time) => {
     return sumMinutes;
 };
 
+const convertMinToTime = (minutes) => {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+  
+    return {
+      hours: hours,
+      minutes: remainingMinutes
+    };
+}
+
 const convertRendezVousEnIntervalle = (rendezVous) => {
     const heureRendezVous = convertTimeToMin(rendezVous.heure_rdv);
     const dureeRendezVous = convertTimeToMin(rendezVous.service_id.duree) + heureRendezVous;
@@ -102,7 +112,7 @@ const findCreneauLibreMecanicien = (mecanicienAvecRdv) => {
     const rendezVousTries = mecanicienAvecRdv.rendez_vous.sort((a, b) => a[0] - b[0]);
 
     // verifie si il n'a pas de rendez vous toute la journée
-    if (rendezVousTries.length === 0) {
+    if (rendezVousTries.length == 0) {
         creneauxLibres.push([heureDebutMatin, heureFinMatin]);
         creneauxLibres.push([heureDebutAprem, heureFinAprem]);
         return creneauxLibres;
@@ -155,33 +165,41 @@ const findCreneauLibreMecanicien = (mecanicienAvecRdv) => {
     return creneauxLibres;
 };
 
-
+// creneau possible pour chaque mecanicien pour réaliser un service
 const creneauPossibleAvecMecanicien = async (service_id,date) =>{
     const allRendezVousMecanicien = await getAllRendezVousMecanicienByDate(date);
+    
+
     const service = await Service.findOne({_id: service_id});
     let dureeService = (convertTimeToMin(service.duree));
 
     const toutCreneauPossible = [];
 
-    for(const rendezVousMecanicien of allRendezVousMecanicien){
+    for(let i = 0 ; i < allRendezVousMecanicien.length ; i++){
 
-        const creneauLibre = findCreneauLibreMecanicien(rendezVousMecanicien);
         const creneauPossible = {
-            mecanicien: rendezVousMecanicien.mecanicien,
+            mecanicien: allRendezVousMecanicien[i].mecanicien,
             creneau: []
         }
 
-        for(let i = 0; i < creneauLibre.length ; i++ ){
-            while (creneauLibre[i][0] + dureeService <= creneauLibre[i][1]) {
-                creneauPossible.creneau.push([
-                    creneauLibre[i][0], 
-                    creneauLibre[i][0] + dureeService
-                ]);
-                console.log(`Créneau : `  + [creneauLibre[i][0], creneauLibre[i][0] + dureeService]);
-                // Ajoute cette ligne pour avancer dans le créneau
-                creneauLibre[i][0] += dureeService;
-            }            
+        const creneauLibreDuMeca = findCreneauLibreMecanicien(allRendezVousMecanicien[i]);
+
+        // prend les créneaux possibles par rapport aux service
+        for(let j=0 ; j < creneauLibreDuMeca.length ; j++){
+            let heureDepart = creneauLibreDuMeca[j][0];
+            let heureFin = creneauLibreDuMeca[j][1];
+            console.log("heureDepart : "  + heureDepart);
+            console.log("heureFin : " + heureFin);
+
+            while( heureDepart + dureeService < heureFin ){
+                const heurePossible = [heureDepart , (heureDepart+dureeService)];
+
+                console.log("heurePossible : [" + heureDepart + "," + heureFin + "]" );
+                creneauPossible.creneau.push(heurePossible);
+                heureDepart = heureDepart+dureeService;
+            }
         }
+        
         toutCreneauPossible.push(creneauPossible);
     }
 
@@ -189,16 +207,43 @@ const creneauPossibleAvecMecanicien = async (service_id,date) =>{
 }
 
 
+const trierCreneauPossibleJour = async(date_rdv,service_id) =>{
+   
+    const toutCreneauPossible = await creneauPossibleAvecMecanicien(service_id, date_rdv);
+   
+    console.log("tout creneau possible avec meca : " + toutCreneauPossible);
+
+    const creneauxUniq = [];
+
+    toutCreneauPossible.forEach(mecanicien => {    
+        mecanicien.creneau.forEach(cr => {
+   
+            const isAlreadyInserted = creneauxUniq.some(existingCreneau => 
+                existingCreneau[0] === cr[0] && existingCreneau[1] === cr[1]
+            );
+
+            if (!isAlreadyInserted) {
+                creneauxUniq.push(cr);
+            }
+        });
+    });
+
+    creneauxUniq.sort((a, b) => a[0] - b[0]);
+
+    for(let i = 0;i < creneauxUniq.length ; i++){
+        creneauxUniq[i][0] = convertMinToTime(creneauxUniq[i][0]);
+        creneauxUniq[i][1] = convertMinToTime(creneauxUniq[i][1]);
+    }
+    
+    return creneauxUniq;
+}
+
+
+
 const propositionMecanicienMoinsDeCharge = async (toutCreneau , creneauChoisi , date)=>{
     try {
         const chargeMecaniciens = await getChargeQuotidienneMecanicien(date);
         
-        // const creneauFiltrer = toutCreneau.filter((creneauPossible) => 
-        //     creneauPossible.creneau.some((creneau) =>
-        //       creneau[0] === creneauChoisi[0] && creneau[1] === creneauChoisi[1]
-        //     )
-        // )
-
         if (!Array.isArray(creneauChoisi) || creneauChoisi.length !== 2) {
             throw new Error("creneauChoisi est invalide.");
         }
@@ -217,30 +262,20 @@ const propositionMecanicienMoinsDeCharge = async (toutCreneau , creneauChoisi , 
 
         console.log(`filter : ` + creneauFiltrer);
       
-
         let mecanicienMoinsCharge = null;
         let chargeMinimale = Infinity;
 
-            // chargeMecaniciens.forEach((mecanicienAvecCharge) => {
-            //     if(mecanicienAvecCharge.mecanicien._id.toString() === creneauFiltrer.mecanicien._id.toString()){
-            //         if(mecanicienAvecCharge.charge < chargeMinimale){
-            //             chargeMinimale = mecanicienAvecCharge.charge;
-            //             mecanicienMoinsCharge = mecanicienAvecCharge.mecanicien;
-            //         }
-            //     }
-            // });
-
         const mecaniciensDisponibles = creneauFiltrer.map(
             (creneau) => creneau.mecanicien
-            );
-        
-            // 2. Trouver le mécanicien avec la plus petite charge
-            chargeMecaniciens.forEach((mecanicienAvecCharge) => {
+        );
+
+        chargeMecaniciens.forEach((mecanicienAvecCharge) => {
             mecaniciensDisponibles.forEach(mecaDisponible => {
                 if (mecanicienAvecCharge.mecanicien._id.toString() === mecaDisponible._id.toString()) {
                 if (mecanicienAvecCharge.charge < chargeMinimale) {
                     chargeMinimale = mecanicienAvecCharge.charge;
                     mecanicienMoinsCharge = mecanicienAvecCharge.mecanicien;
+                    console.log(mecanicienAvecCharge.mecanicien);
                 }
                 }
             });
@@ -256,7 +291,7 @@ const propositionMecanicienMoinsDeCharge = async (toutCreneau , creneauChoisi , 
 }
 
 
-
+// ############------------- Controller ------------------############### \\
 
 exports.getAllMecanicien = async (req, res) => {
     try {
@@ -293,33 +328,53 @@ exports.getRendezVousFromDate = async (req, res) => {
     }
 };
 
+
+
+exports.getCreneauPossibleJournee = async (req,res) =>{
+    try {
+        const { service_id,date_rdv } = req.body;
+        const result = await trierCreneauPossibleJour(date_rdv,service_id);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({message : error.message});
+    }
+}
+
+
+
 exports.getTempsLibreMecanicien = async (req, res) => {
     try{
         const { date_rdv , service_id , creneauChoisi } = req.body;
         
+        // ty mandeha tsara //
         // getAllRendezVousMecanicienByDate(date_rdv)
         // .then((result) => { 
-        //     // console.log(result[1]);
-        //     // res.json(findCreneauLibreMecanicien(result[1]))
-        //     res.json(result);
+        //     console.log(result[1]);
+        //     res.json(findCreneauLibreMecanicien(result[1]))
+        //     // res.json(result);
         // })
         // .catch((error) => {
-        //     console.error(error); // Si une erreur se produit
+        //     console.error(error);  // Si une erreur se produit
         // });
+
+        
 
         // const result = await getChargeQuotidienneMecanicien(date_rdv);
         // res.json(result);
 
+        // ty misy bug //
         const toutCreneau = await creneauPossibleAvecMecanicien(service_id,date_rdv); 
-        const result = await propositionMecanicienMoinsDeCharge(toutCreneau , creneauChoisi , date_rdv);
+        res.json(toutCreneau);
+        // const result = await propositionMecanicienMoinsDeCharge(toutCreneau , creneauChoisi , date_rdv);
 
-        res.json(result);
+        // res.json(result);
 
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: error.message });
     }
 };
+
 
 exports.insertRendezVous = async (req, res) => {
     try {

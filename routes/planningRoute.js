@@ -10,6 +10,10 @@ router.get("/rendezvous", planningController.getAllRendezVous);
 
 router.get("/rendezvousdate" , planningController.getRendezVousFromDate);
 
-router.get("/creneau" , planningController.getTempsLibreMecanicien);
+router.get("/test" , planningController.getTempsLibreMecanicien);
+
+router.post("/proposeCreneau" , planningController.getCreneauPossibleJournee);
+
+
 
 module.exports = router;
