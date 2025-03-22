@@ -13,4 +13,4 @@ router.post("/register",validateRegister,authController.register);
 // Inscription
 router.put("/change-pwd",verifToken,authController.changePassword);
 
-module.exports = router;
+

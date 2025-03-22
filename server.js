@@ -20,6 +20,8 @@ mongoose
 
 // Routes
 app.use("/auth", require("./routes/authRoutes"));
+app.use("/planning", require("./routes/planningRoute"));
+app.use("/service" , require("./routes/serviceRoute"));
 app.use("/profil", require("./routes/profilRoutes"));
 app.use("/vehicule", require("./routes/vehiculeRoutes"));
 app.use("/typeVehicule", require("./routes/typeVehiculeRoutes"));
@@ -30,6 +32,5 @@ app.use("/reparation", require("./routes/reparationRoutes"));
 
 
 app.listen(PORT, () =>
-  console.log(`Serveur démarré sur le port
-${PORT}`)
+  console.log(`Serveur démarré sur : http://localhost:${PORT}`)
 );

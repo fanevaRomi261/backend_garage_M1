@@ -12,6 +12,7 @@ const verifToken = (req, res, next) => {
     if (err) {
       return res.status(401).json({ message: "Token invalide" });
     }
+
     // console.log(decoded);
     req.user = decoded;
     next();
@@ -35,6 +36,7 @@ const verifProfil = (authorizedProfil = []) => {
     next();
   };
 };
+
 
 // const verifProfil = (authorizedProfil = []) => {
 //   return async (req, res, next) => {
