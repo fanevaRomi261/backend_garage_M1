@@ -7,8 +7,10 @@ const UtilisateurSchema = new mongoose.Schema(
     mail: { type: String, required: true },
     pwd: { type: String, required: true },
     dtn: { type: Date, required: true },
+    contact: { type: String, required: true },
     profil_id: { type: mongoose.Schema.Types.ObjectId, ref: "Profils", required: true },
-    vehicules_id : [{ type : mongoose.Schema.Types.ObjectId , ref: 'Vehicules' }]
+    isActif: { type: Number,default: 1,enum: [0, 1] },
+    // vehicules_id : [{ type : mongoose.Schema.Types.ObjectId , ref: 'Vehicules' }]
   },
   { timestamps: true }
 );

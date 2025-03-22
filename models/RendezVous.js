@@ -21,7 +21,7 @@ const RendezVousSchema = new mongoose.Schema(
       ref: "Services",
       required: true,
     },
-    id_vehicule: { type: String , ref: "Vehicules" }
+    id_voiture : { type: mongoose.Schema.Types.ObjectId , ref:'Vehicules' , required: true }
   },
   { timestamps: true }
 );
