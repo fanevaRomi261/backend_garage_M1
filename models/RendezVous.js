@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Time = require("../shared/Time")
 
 const RendezVousSchema = new mongoose.Schema(
   {
@@ -7,7 +8,8 @@ const RendezVousSchema = new mongoose.Schema(
     duree : { type: Time.schema , required: true },
     date_rdv : { type : Date , required: true },
     etat : { type : Number , required: true },
-    service_id : { type: mongoose.Schema.Types.ObjectId , ref:'Services' , required: true }
+    service_id : { type: mongoose.Schema.Types.ObjectId , ref:'Services' , required: true },
+    id_voiture : { type: mongoose.Schema.Types.ObjectId , ref:'Vehicules' , required: true }
   },
   { timestamps: true }
 );

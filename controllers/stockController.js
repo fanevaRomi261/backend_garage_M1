@@ -89,11 +89,15 @@ exports.ajouterDetailReparation = async (req, res) => {
     const reparation = await Reparation.findById(reparation_id);
     // console.log(reparation);
     if (!reparation) {
-      throw new Error("Réparation non trouvée");
+      return res.status(404).json({ message: "Réparation non trouvée" });
     }
 
     if (resteEnStock < quantite) {
-      throw new Error("Quantite insuffisante pour ce piece");
+      return res.status(422).json({ 
+        message: "Quantité insuffisante pour ce pièce",
+        stockRestant: resteEnStock,
+        quantiteDemandee: quantite
+      });
     }
 
     const prixPiece = await pieceService.getPrixPiece(piece_id);
@@ -119,3 +123,4 @@ exports.ajouterDetailReparation = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
+

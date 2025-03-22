@@ -25,6 +25,8 @@ app.use("/vehicule", require("./routes/vehiculeRoutes"));
 app.use("/typeVehicule", require("./routes/typeVehiculeRoutes"));
 app.use("/stock", require("./routes/stockRoutes"));
 app.use("/utilisateur", require("./routes/utilisateurRoutes"));
+app.use("/piece", require("./routes/pieceRoutes"));
+app.use("/reparation", require("./routes/reparationRoutes"));
 
 
 app.listen(PORT, () =>
