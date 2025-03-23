@@ -29,7 +29,7 @@ app.use("/stock", require("./routes/stockRoutes"));
 app.use("/utilisateur", require("./routes/utilisateurRoutes"));
 app.use("/piece", require("./routes/pieceRoutes"));
 app.use("/reparation", require("./routes/reparationRoutes"));
-
+app.use("/rendezvous", require("./routes/rendezvousRoute"));
 
 app.listen(PORT, () =>
   console.log(`Serveur démarré sur : http://localhost:${PORT}`)
