@@ -329,7 +329,6 @@ exports.getRendezVousFromDate = async (req, res) => {
 };
 
 
-
 exports.getCreneauPossibleJournee = async (req,res) =>{
     try {
         const { service_id,date_rdv } = req.body;
@@ -339,7 +338,6 @@ exports.getCreneauPossibleJournee = async (req,res) =>{
         res.status(500).json({message : error.message});
     }
 }
-
 
 
 exports.getTempsLibreMecanicien = async (req, res) => {
@@ -357,8 +355,6 @@ exports.getTempsLibreMecanicien = async (req, res) => {
         //     console.error(error);  // Si une erreur se produit
         // });
 
-        
-
         // const result = await getChargeQuotidienneMecanicien(date_rdv);
         // res.json(result);
 
@@ -366,9 +362,7 @@ exports.getTempsLibreMecanicien = async (req, res) => {
         const toutCreneau = await creneauPossibleAvecMecanicien(service_id,date_rdv); 
         res.json(toutCreneau);
         // const result = await propositionMecanicienMoinsDeCharge(toutCreneau , creneauChoisi , date_rdv);
-
         // res.json(result);
-
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: error.message });
@@ -376,10 +370,28 @@ exports.getTempsLibreMecanicien = async (req, res) => {
 };
 
 
-exports.insertRendezVous = async (req, res) => {
+exports.addRendezVous = async (req, res) => {
     try {
-        const { client_id, heure_rdv, date_rdv, service_id } = req.body;
+        const { client_id, creneauChoisi, date_rdv, service_id , id_voiture } = req.body;
+        const toutCreneau = await creneauPossibleAvecMecanicien(service_id,date_rdv);
+        const mecanicien_id = await propositionMecanicienMoinsDeCharge(toutCreneau , creneauChoisi , date_rdv);
+        const etat = 5;
+        const heure_rdv = convertMinToTime(creneauChoisi[0]);
+    
+        const newRendezVous = new RendezVous({
+            client_id,
+            mecanicien_id,
+            date_rdv,
+            heure_rdv,
+            etat,
+            service_id,
+            id_voiture
+        });
+
+        await newRendezVous.save();
+        res.status(201).json({message: "Rendez vous ajouté"});
+
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({ message:  "Erreur lors de l'ajout du rendez vous : " + error.message });
     }
 };
