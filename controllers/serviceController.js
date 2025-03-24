@@ -14,3 +14,16 @@ exports.getAllService = async(req,res) =>{
         res.status(500).json({message: error.message});
     }
 }
+
+exports.findServiceById = async(req,res) => {
+    try {
+        const {idService} = req.params;
+        const service = await Service.findById(idService).lean();
+        if (!service) {
+            return res.status(404).json({ message: "Service non trouvé" });
+        }
+        res.json(service);
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+}
