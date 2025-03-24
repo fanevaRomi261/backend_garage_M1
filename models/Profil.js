@@ -8,3 +8,4 @@ const ProfilSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Profils", ProfilSchema);
+ 

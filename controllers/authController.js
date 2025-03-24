@@ -20,6 +20,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Mot de passe incorrect" });
     }
 
+
     if (user.isActif === 0) {
       return res.status(400).json({ message: "Votre compte est désactivé" });
     }
