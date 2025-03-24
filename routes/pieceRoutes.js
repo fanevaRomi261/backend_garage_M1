@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const profilController = require('../controllers/profilController');
+const pieceController = require('../controllers/pieceController');
 const { verifToken } = require('../middlewares/authMiddleware');
 
-// all profil
-router.get("/",verifToken,profilController.getProfils);
+// all piece
+router.get("/",verifToken,pieceController.getPiece);
 
 module.exports = router;

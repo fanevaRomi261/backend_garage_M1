@@ -12,9 +12,9 @@ exports.validateRegister = [
     .withMessage("Le mot de passe doit contenir au moins 8 caractères."),
     // .matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/),
     // .withMessage("Doit contenir au moins une majuscule, un chiffre et un caractère spécial."),
-  check("contact")
-    .isMobilePhone("fr-FR")
-    .withMessage("Numéro de téléphone invalide."),
+  // check("contact")
+  //   .isMobilePhone("fr-FR")
+  //   .withMessage("Numéro de téléphone invalide."),
   check("dtn")
     .isISO8601()
     .withMessage("Date de naissance invalide (format attendu: YYYY-MM-DD)."),

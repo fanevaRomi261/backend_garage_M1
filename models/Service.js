@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
-const Time = require('../shared/Time');
+const timeSchema = require("../shared/Time").schema;
 
 const ServiceSchema = new mongoose.Schema(
   {
     libelle : { type: String, required: true },
-    duree : { type: Time.schema , required: true }
+    duree : { type: timeSchema , required: false }
   },
   { timestamps: true }
 );

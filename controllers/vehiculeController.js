@@ -32,7 +32,7 @@ exports.ajouterVehicule = async (req, res) => {
     await vehicule.save();
     res.status(201).json({ message: "Véhicule ajouté avec succès", vehicule });
   } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error });
+    res.status(500).json({ message: "Erreur serveur", error:error.message });
   }
 };
 
@@ -45,11 +45,11 @@ exports.getVehiculesParUtilisateur = async (req, res) => {
       return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
 
-    const vehicules = await Vehicule.find({ utilisateur_id });
+    const vehicules = await Vehicule.find({ utilisateur_id }).populate('type_vehicule_id');
 
     res.json(vehicules);
   } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error });
+    res.status(500).json({ message: "Erreur serveur", error:error.message });
   }
 };
 
@@ -96,6 +96,23 @@ exports.updateVehicule = async (req, res) => {
       .status(200)
       .json({ message: "Véhicule mis à jour avec succès", vehicule });
   } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error });
+    res.status(500).json({ message: "Erreur serveur", error:error.message });
+  }
+};
+
+
+exports.getVehiculeById = async (req, res) => {
+  try {
+    const vehicule_id = req.params.id;
+
+    const vehicule = await Vehicule.findById(vehicule_id).populate('type_vehicule_id utilisateur_id');
+
+    if (!vehicule) {
+      return res.status(404).json({ message: "Véhicule non trouvé" });
+    }
+
+    res.status(200).json(vehicule);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error:error.message });
   }
 };
