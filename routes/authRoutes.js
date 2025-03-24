@@ -10,8 +10,8 @@ router.post("/login",authController.login);
 // Inscription
 router.post("/register",validateRegister,authController.register);
 
-// Inscription
+// Changement mot de passe
 router.put("/change-pwd",verifToken,authController.changePassword);
 
-
 module.exports = router;
+
