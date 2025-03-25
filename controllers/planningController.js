@@ -1,5 +1,3 @@
-const express = require("express");
-const router = express.Router();
 const RendezVous = require("../models/RendezVous");
 const Utilisateur = require("../models/Utilisateur");
 const Service = require("../models/Service");
@@ -169,7 +167,6 @@ const findCreneauLibreMecanicien = (mecanicienAvecRdv) => {
 const creneauPossibleAvecMecanicien = async (service_id,date) =>{
     const allRendezVousMecanicien = await getAllRendezVousMecanicienByDate(date);
     
-
     const service = await Service.findOne({_id: service_id});
     let dureeService = (convertTimeToMin(service.duree));
 
@@ -191,7 +188,7 @@ const creneauPossibleAvecMecanicien = async (service_id,date) =>{
             console.log("heureDepart : "  + heureDepart);
             console.log("heureFin : " + heureFin);
 
-            while( heureDepart + dureeService < heureFin ){
+            while( heureDepart + dureeService <= heureFin ){
                 const heurePossible = [heureDepart , (heureDepart+dureeService)];
 
                 console.log("heurePossible : [" + heureDepart + "," + heureFin + "]" );
@@ -302,21 +299,7 @@ exports.getAllMecanicien = async (req, res) => {
     }
 };
 
-exports.getAllRendezVous = async (req, res) => {
-    try {
-        RendezVous.find()
-        .lean()
-        .populate("mecanicien_id")
-        .populate("service_id")
-        .populate("client_id")
-        .then((rendezvous) => {
-            console.log(rendezvous);
-            res.json(rendezvous);
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
+
 
 exports.getRendezVousFromDate = async (req, res) => {
     try {

@@ -4,4 +4,9 @@ const planningController = require('../controllers/planningController');
 
 router.post("/save",planningController.addRendezVous);
 
+router.get("/mecanicien" , planningController.getAllMecanicien);
+
+router.get("/")
+
+
 module.exports = router;
