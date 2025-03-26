@@ -32,5 +32,5 @@ app.use("/reparation", require("./routes/reparationRoutes"));
 app.use("/rendezvous", require("./routes/rendezvousRoute"));
 
 app.listen(PORT, () =>
-  console.log(`Serveur démarré sur : http://localhost:${PORT}`)
+  console.log(`Serveur démarré sur port : ${PORT}`)
 );
