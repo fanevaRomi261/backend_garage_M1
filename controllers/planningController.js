@@ -288,17 +288,46 @@ const propositionMecanicienMoinsDeCharge = async (toutCreneau , creneauChoisi , 
 }
 
 
+const propositionMecanicienPourService = async(toutCreneau , creneauChoisi , date) => {
+    try {
+        
+        if (!Array.isArray(creneauChoisi) || creneauChoisi.length !== 2) {
+            throw new Error("creneauChoisi est invalide.");
+        }
+      
+        const creneauFiltrer = toutCreneau.filter((creneauPossible) => {
+            if (creneauPossible.creneau && Array.isArray(creneauPossible.creneau)) {
+              return creneauPossible.creneau.some((creneau) => {
+                if (Array.isArray(creneau) && creneau.length === 2) {
+                  return creneau[0] === creneauChoisi[0] && creneau[1] === creneauChoisi[1];
+                }
+                return false;
+              });
+            }
+            return false;
+        });
+
+        const mecaniciensDisponibles = creneauFiltrer.map(
+            (creneau) => creneau.mecanicien
+        );
+
+        return mecaniciensDisponibles;
+    } catch (error) {
+        throw error;
+    }
+}
+
+
 // ############------------- Controller ------------------############### \\
 
 exports.getAllMecanicien = async (req, res) => {
     try {
-        const mecaniciens = getAllMecanicien();
+        const mecaniciens = await getAllMecanicien();
         res.json(mecaniciens);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).send({ message: error.message });
     }
 };
-
 
 
 exports.getRendezVousFromDate = async (req, res) => {
@@ -307,7 +336,7 @@ exports.getRendezVousFromDate = async (req, res) => {
         const allRendezVous = await getRendezVousByDate(date_rdv);
         res.json(allRendezVous);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).send({ message: error.message });
     }
 };
 
@@ -318,7 +347,7 @@ exports.getCreneauPossibleJournee = async (req,res) =>{
         const result = await trierCreneauPossibleJour(date_rdv,service_id);
         res.json(result);
     } catch (error) {
-        res.status(500).json({message : error.message});
+        res.status(500).send({message : error.message});
     }
 }
 
@@ -348,9 +377,22 @@ exports.getTempsLibreMecanicien = async (req, res) => {
         // res.json(result);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: error.message });
+        res.status(500).send({ message: error.message });
     }
 };
+
+
+exports.proposeChangementMecanicien = async (req,res) =>{
+    try {
+        const { date_rdv , service_id , creneauChoisi } = req.body;
+        const toutCreneauLibre = await creneauPossibleAvecMecanicien(service_id,date_rdv);
+        const mecaLibre = await propositionMecanicienPourService(toutCreneauLibre,creneauChoisi,date_rdv);
+        return res.status(200).json(mecaLibre);
+    } catch (error) {
+        res.status(500).send({message : error.message});
+    }
+}
+
 
 
 exports.addRendezVous = async (req, res) => {
