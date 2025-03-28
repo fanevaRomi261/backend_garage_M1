@@ -68,9 +68,17 @@ exports.getRendezVousSemaineMecanicien = async(req,res) =>{
             date_rdv: { $gte: firstDayOfWeek, $lte: lastDayOfWeek }, // Plage de dates entre lundi et vendredi
             etat : 5
         })
+        .select("_id client_id heure_rdv date_rdv id_voiture")
         .lean()
-        .populate("client_id")
-        .populate("service_id");
+        .populate({
+            path: "client_id",
+            select : "_id nom prenom mail contact profil_id"
+        })
+        .populate("service_id")
+        .populate({
+            path: "id_voiture",
+            select : "_id immatriculation modele marque"
+        });
         
         if (!listeRendezVous || listeRendezVous.length === 0) {
             return res.json("Aucun rendez-vous trouvé");

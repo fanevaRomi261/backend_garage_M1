@@ -236,7 +236,6 @@ const trierCreneauPossibleJour = async(date_rdv,service_id) =>{
 }
 
 
-
 const propositionMecanicienMoinsDeCharge = async (toutCreneau , creneauChoisi , date)=>{
     try {
         const chargeMecaniciens = await getChargeQuotidienneMecanicien(date);
