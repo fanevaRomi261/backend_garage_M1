@@ -28,6 +28,38 @@ const getReparationsByVehiculeId = async (req, res) => {
   }
 };
 
+
+
+const insertReparation = async(req,res) => {
+  try{
+    const {rendez_vous_id,date_debut} = req.body;
+
+    const newReparation = new Reparation({
+      rendez_vous_id,
+      date_debut
+    });
+
+    await newReparation.save();
+
+    await RendezVous.findByIdAndUpdate(
+      rendez_vous_id, 
+      {etat : 15}, 
+      {new : true}, 
+      {runValidators : true});
+      
+      res.status(201).json({message : "Reparation ajouté"})
+
+  }catch(error){
+    res.status(400).json({message: "Erreur lors de l'ajout de reparation " + error.message});
+  }
+}
+
+
+
+
+
+
+
 module.exports = {
   getReparationsByVehiculeId,
 };
