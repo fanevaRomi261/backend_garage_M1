@@ -5,6 +5,8 @@ const rendezvousController = require('../controllers/rendezVousController');
 
 router.post("/save",planningController.addRendezVous);
 
+router.post("/find" , rendezvousController.getRendezVousById);
+
 router.get("/mecanicien" , planningController.getAllMecanicien);
 
 router.get("/futur/:idClient" , rendezvousController.getFuturRendezVousClient);

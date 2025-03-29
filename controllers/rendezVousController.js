@@ -4,7 +4,9 @@ const Utilisateur = require("../models/Utilisateur");
 
 exports.getAllRendezVous = async (req, res) => {
     try {
-        RendezVous.find()
+        RendezVous.find({
+            etat: 5
+        })
         .lean()
         .populate("mecanicien_id")
         .populate("service_id")
@@ -18,6 +20,37 @@ exports.getAllRendezVous = async (req, res) => {
     }
 };
 
+exports.getRendezVousById = async (req,res) =>{
+    try{
+        const {_idRendezvous} = req.body;
+        RendezVous.findById(_idRendezvous)
+        .lean()
+        .populate({
+            path : "mecanicien_id",
+            select : "nom prenom"
+        })
+        .populate({
+            path : "client_id",
+            select : "nom prenom contact"
+        })
+        .populate({
+            path : "service_id",
+            select : "libelle duree"
+        })
+        .populate({
+            path : "id_voiture",
+            select : "immatriculation modele marque" 
+        })
+        .then((rendezvous) =>{
+            res.json(rendezvous);
+        });
+
+    }catch(error){
+        res.status(500).json({message : error.message});
+    }
+}
+
+
 // rendez vous pour client
 exports.getFuturRendezVousClient = async(req, res) => {
     try{
@@ -27,7 +60,8 @@ exports.getFuturRendezVousClient = async(req, res) => {
         
         const listeRendezVous = await RendezVous.find({
             client_id: idClient, 
-            dateRendezVous: { $gte: dateAjd } 
+            etat : 5
+            // dateRendezVous: { $gte: dateAjd } 
         })
         .lean()
         .populate("mecanicien_id")
@@ -35,7 +69,7 @@ exports.getFuturRendezVousClient = async(req, res) => {
         .populate("client_id");
 
         if (!listeRendezVous || listeRendezVous.length === 0) {
-            return res.json("Aucun rendez-vous trouvé");
+            return res.json([]);
         }
 
         res.json(listeRendezVous);
@@ -81,8 +115,9 @@ exports.getRendezVousSemaineMecanicien = async(req,res) =>{
         });
         
         if (!listeRendezVous || listeRendezVous.length === 0) {
-            return res.json("Aucun rendez-vous trouvé");
+            return res.json( [] );
         }
+
         res.json(listeRendezVous);
 
     }catch(error){
