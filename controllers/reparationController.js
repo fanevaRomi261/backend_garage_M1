@@ -1,7 +1,8 @@
 const RendezVous = require("../models/RendezVous");
 const Reparation = require("../models/Reparation");
+const reparationService = require("../services/reparationService");
 
-const getReparationsByVehiculeId = async (req, res) => {
+exports.getReparationsByVehiculeId = async (req, res) => {
   try {
     const { idvehicule } = req.params;
 
@@ -29,37 +30,84 @@ const getReparationsByVehiculeId = async (req, res) => {
 };
 
 
+exports.commencerReparation = async (req, res) => {
+  try {
 
-const insertReparation = async(req,res) => {
-  try{
-    const {rendez_vous_id,date_debut} = req.body;
+    const { mecanicien_id , rendez_vous_id, date_debut , date_fin , prix_main_doeuvre } = req.body;
+
+    if(await reparationService.verifierReparationPrecedente(mecanicien_id,rendez_vous_id) === true){
+      throw new Error("Veuillez clôturer la réparation précédente");
+    }
 
     const newReparation = new Reparation({
       rendez_vous_id,
-      date_debut
+      date_debut,
+      date_fin,
+      prix_main_doeuvre,
     });
 
-    await newReparation.save();
+    await newReparation.save(); 
 
-    await RendezVous.findByIdAndUpdate(
-      rendez_vous_id, 
-      {etat : 15}, 
-      {new : true}, 
-      {runValidators : true});
-      
-      res.status(201).json({message : "Reparation ajouté"})
+    const filter = { _id: rendez_vous_id };
+    const fieldUpdate = { etat: 15 };
+
+    const rendezvous = await RendezVous.findByIdAndUpdate(filter, fieldUpdate); 
+    rendezvous.save();
+
+    res.status(201).json(newReparation);
+    
+  } catch (error) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+
+exports.closeReparation = async(req,res) => {
+  try{
+    const {reparation_id , rendez_vous_id , date_fin , prix_main_doeuvre ,  observation } = req.body;
+
+    const filterReparation = {
+      _id : reparation_id
+    }
+    const fieldUpdate = {
+      date_fin : date_fin,
+      observation : observation,
+      prix_main_doeuvre : prix_main_doeuvre
+    }
+    const reparation = await Reparation.findByIdAndUpdate(filterReparation,fieldUpdate);
+    reparation.save();
+
+    const filter = { _id: rendez_vous_id };
+    const rdvUpdate = { etat: 20 };
+
+    const rendezvous = await RendezVous.findByIdAndUpdate(filter,rdvUpdate);
+    rendezvous.save();
+    
+    res.status(201).json({ message: 'Réparation fermée'});
 
   }catch(error){
-    res.status(400).json({message: "Erreur lors de l'ajout de reparation " + error.message});
+    res.status(400).json({
+      message: "Erreur lors de la fermeture de réparation : " + error.message,
+    }); 
   }
 }
 
 
+exports.payerReparation = async(req,res) => {
+  try{
+    const {rendez_vous_id} = req.body;
 
+    const rendezvous = await RendezVous.findByIdAndUpdate({_id: rendez_vous_id},{etat : 25});
+    rendezvous.save();
 
+    res.status(201).json({message: 'Réparation payé'});
 
+  }catch(error){
+    res.status(400).json({
+      message: "Erreur lors du paiement de réparation : " + error.message,
+    })
+  } 
+}
 
-
-module.exports = {
-  getReparationsByVehiculeId,
-};

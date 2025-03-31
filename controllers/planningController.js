@@ -39,26 +39,40 @@ exports.getCreneauPossibleJournee = async (req,res) =>{
 
 exports.getTempsLibreMecanicien = async (req, res) => {
     try{
-        const { date_rdv , service_id , creneauChoisi } = req.body;
+        const { date_rdv , id_rendezvous , service_id , creneauChoisi } = req.body;
         
         // ty mandeha tsara //
-        // getAllRendezVousMecanicienByDate(date_rdv)
+        // await planningService.getAllRendezVousMecanicienByDate(date_rdv)
         // .then((result) => { 
-        //     console.log(result[1]);
-        //     res.json(findCreneauLibreMecanicien(result[1]))
+        //     console.log(result[0]);
+        //     res.json(planningService.findCreneauLibreMecanicien(result[0]))
         //     // res.json(result);
         // })
         // .catch((error) => {
         //     console.error(error);  // Si une erreur se produit
         // });
 
-        // const result = await getChargeQuotidienneMecanicien(date_rdv);
+        // await planningService.creneauLibreAvecMecanicien(date_rdv).then((result) => {
+        //     res.json(result);
+        // })
+
+        await planningService.getRendezVousSansModification(date_rdv,id_rendezvous).then((result) => {
+            res.json(result);
+        });
+
+
+        // const result = await planningService.getChargeQuotidienneMecanicien(date_rdv);
         // res.json(result);
 
         // ty misy bug //
-        const toutCreneau = await planningService.creneauPossibleAvecMecanicien(service_id,date_rdv); 
-        res.json(toutCreneau);
-        // const result = await propositionMecanicienMoinsDeCharge(toutCreneau , creneauChoisi , date_rdv);
+        // const toutCreneau = await planningService.creneauPossibleAvecMecanicien(service_id,date_rdv); 
+        // res.json(toutCreneau);
+        // for(const creneau of toutCreneau){
+        //     console.log(creneau);
+        // }
+
+
+        // const result = await planningService.propositionMecanicienMoinsDeCharge(toutCreneau , creneauChoisi , date_rdv);
         // res.json(result);
     } catch (error) {
         console.error(error);
@@ -69,15 +83,21 @@ exports.getTempsLibreMecanicien = async (req, res) => {
 
 exports.proposeChangementMecanicien = async (req,res) =>{
     try {
-        const { date_rdv , service_id , creneauChoisi } = req.body;
-        const toutCreneauLibre = await planningService.creneauPossibleAvecMecanicien(service_id,date_rdv);
+        const { date_rdv , id_rendezvous , creneauChoisi } = req.body;
+        const toutCreneauLibre = await planningService.creneauLibreAvecMecanicien(date_rdv,id_rendezvous);
+        
+        toutCreneauLibre.map((creneau) => {
+            console.log(creneau);
+        })
+        // console.log(toutCreneauLibre);
+
         const mecaLibre = await planningService.propositionMecanicienPourService(toutCreneauLibre,creneauChoisi,date_rdv);
         return res.status(200).json(mecaLibre);
     } catch (error) {
+        console.log(error.stack);
         res.status(500).send({message : error.message});
     }
 }
-
 
 
 exports.addRendezVous = async (req, res) => {

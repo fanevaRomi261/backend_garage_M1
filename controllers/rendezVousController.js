@@ -1,10 +1,12 @@
 const RendezVous = require("../models/RendezVous");
 const planningController = require("../controllers/planningController");
 const Utilisateur = require("../models/Utilisateur");
+const rendezvousService = require("../services/rendezvousService");
+const planningService = require("../services/planningService");
 
 exports.getAllRendezVous = async (req, res) => {
     try {
-        RendezVous.find({
+        await RendezVous.find({
             etat: 5
         })
         .lean()
@@ -60,8 +62,8 @@ exports.getFuturRendezVousClient = async(req, res) => {
         
         const listeRendezVous = await RendezVous.find({
             client_id: idClient, 
-            etat : 5
-            // dateRendezVous: { $gte: dateAjd } 
+            etat : {$gte : 5},
+            dateRendezVous: { $gte: dateAjd } 
         })
         .lean()
         .populate("mecanicien_id")
@@ -73,127 +75,83 @@ exports.getFuturRendezVousClient = async(req, res) => {
         }
 
         res.json(listeRendezVous);
-
     }catch(error){
         res.status(500).json({message: error.message});
     }
 }
 
-// rendez vous mécanicien
-exports.getRendezVousSemaineMecanicien = async(req,res) =>{
-    try{
-        const {idMecanicien} = req.params;
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const firstDayOfWeek = new Date(today);
-        const dayOfWeek = today.getDay();
-        const diffToMonday = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek; // Si dimanche (0), on ajuste à -6, sinon à 1
-        firstDayOfWeek.setDate(today.getDate() + diffToMonday);
-        firstDayOfWeek.setHours(0, 0, 0, 0); 
-
-        const lastDayOfWeek = new Date(firstDayOfWeek);
-        lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 5); 
-        lastDayOfWeek.setHours(12, 59, 59, 999); 
-
-        const listeRendezVous = await RendezVous.find({
-            mecanicien_id : idMecanicien, 
-            date_rdv: { $gte: firstDayOfWeek, $lte: lastDayOfWeek }, // Plage de dates entre lundi et vendredi
-            etat : 5
-        })
-        .select("_id client_id heure_rdv date_rdv id_voiture")
-        .lean()
-        .populate({
-            path: "client_id",
-            select : "_id nom prenom mail contact profil_id"
-        })
-        .populate("service_id")
-        .populate({
-            path: "id_voiture",
-            select : "_id immatriculation modele marque"
-        });
+// update rendez vous
+exports.updateRendezVous = async(req,res) =>{
+    try {
+        const {_id,date_rdv,heure_rdv,mecanicien_id} = req.body;
         
-        if (!listeRendezVous || listeRendezVous.length === 0) {
-            return res.json( [] );
+        const timeHeure = planningService.convertMinToTime(heure_rdv[0]);
+
+        const filter = {_id : _id};
+        
+        const fieldUpdate = {
+            mecanicien_id : mecanicien_id,
+            date_rdv : date_rdv,
+            heure_rdv : timeHeure
         }
 
-        res.json(listeRendezVous);
+        const rendezvous = await RendezVous.findOneAndUpdate(filter,fieldUpdate);
+        rendezvous.save();
+        res.status(200).json("Mise à jour effectué");
+        console.log(rendezvous);
+
+    } catch (error) {
+        res.status(400).json({message : "Erreur dans la modification : "  + error});
+    }
+}
+
+
+
+// rendez vous pour manager et mecanicien
+exports.getRendezVousEmploye = async(req,res) =>{
+    try{
+        let listeRendezVous = [];
+        const {idEmploye} = req.params;
+        console.log(idEmploye);
+        
+        const roleUtilisateur = await Utilisateur.findOne({ _id : idEmploye })
+        .select('_id')
+        .populate({
+            path: "profil_id",
+            select : "libelle"
+        });
+
+        // console.log(roleUtilisateur);
+
+        const libelle = roleUtilisateur?.profil_id?.libelle?.toLowerCase();
+        console.log("libelle role : " + libelle);
+
+        if(libelle === "mécanicien"){
+            listeRendezVous = await rendezvousService.getRendezVousMecanicien(idEmploye);
+            console.log("meca izy : " + listeRendezVous);
+            res.json(listeRendezVous)
+        }else if(libelle === "manager"){
+            listeRendezVous = await rendezvousService.getRendezVousManager();
+            console.log("manager izy : " + listeRendezVous);
+            res.json(listeRendezVous);
+        }
 
     }catch(error){
         res.status(500).json({message : error.message});
     }
 }
 
+exports.annulerRendezVous = async(req,res) =>{
+    try{    
+        const {id_rendezvous} = req.params;
 
-// liste rendez vous côté manager
-exports.getRendezVousSemaineManager = async(req,res) =>{
-    try {
-        const listeRendezVous = [];
+        const rendezvous = await RendezVous.findOneAndUpdate({_id: id_rendezvous} , {etat : 0});
+        rendezvous.save();
+        res.status(200).json("Rendez vous annulé");
+        console.log("nety");
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const firstDayOfWeek = new Date(today);
-        const dayOfWeek = today.getDay();
-        const diffToMonday = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek; // Si dimanche (0), on ajuste à -6, sinon à 1
-        firstDayOfWeek.setDate(today.getDate() + diffToMonday);
-        firstDayOfWeek.setHours(0, 0, 0, 0); 
-
-        const lastDayOfWeek = new Date(firstDayOfWeek);
-        lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 5); 
-        lastDayOfWeek.setHours(12, 59, 59, 999);
-
-        const allUtilisateur = await Utilisateur.find()
-        .select("_id nom prenom profil_id")
-        .populate({
-            path : "profil_id",
-            select : "_id libelle"
-        },);
-        const mecaniciens = allUtilisateur.filter(
-            (meca) => meca.profil_id.libelle === "Mécanicien"
-        );
-
-        for (const meca of mecaniciens) {
-
-            const rdv = {
-                mecanicien : meca,
-                rendez_vous_semaine : []
-            };
-
-            const rendezVousForMeca = await RendezVous.find({
-                mecanicien_id: meca._id,
-                date_rdv: { $gte: firstDayOfWeek, $lte: lastDayOfWeek },
-                etat : 5
-            })
-            .select("_id client_id heure_rdv date_rdv etat service_id id_voiture")
-            .lean()
-            .populate({
-                path : "client_id",
-                select : "_id nom prenom contact"
-            })
-            .populate({
-                path: "service_id",
-                select : "_id libelle duree"
-            })
-            .populate({
-                path : "id_voiture",
-                select : "_id immatriculation modele marque"
-            });
-
-            rdv.rendez_vous_semaine.push(rendezVousForMeca);
-            listeRendezVous.push(rdv);
-        }
-
-        if (!listeRendezVous || listeRendezVous.length === 0) {
-            return res.json("Aucun rendez-vous trouvé");
-        }
-
-        res.json(listeRendezVous);
-    } catch (error) {
-        res.status(500).json({message: error.message});
+    }catch(error){
+        res.status(500).json({message : error.message});
     }
- }
-
-
+}
  

@@ -46,7 +46,7 @@ const convertRendezVousEnIntervalle = (rendezVous) => {
 
 const getAllRendezVousMecanicienByDate = async (date) => {
     try {
-        const allRendezVous = await RendezVous.find({ date_rdv: date }).populate('mecanicien_id').populate('service_id');
+        const allRendezVous = await RendezVous.find({ date_rdv: date , etat : {$gte : 5} }).populate('mecanicien_id').populate('service_id');
         const allMecanicien = await getAllMecanicien();
         const allMecanicienAvecRdv = [];
         
@@ -57,7 +57,38 @@ const getAllRendezVousMecanicienByDate = async (date) => {
             }
 
             for(const rendezVous of allRendezVous){
-                if(rendezVous.mecanicien_id._id.toString() === meca._id.toString()){
+                if(rendezVous?.mecanicien_id._id.toString() === meca._id.toString()){
+                    mecanicienAvecRdv.rendez_vous.push(convertRendezVousEnIntervalle(rendezVous));
+                }
+            }
+
+            allMecanicienAvecRdv.push(mecanicienAvecRdv);
+        }
+        return allMecanicienAvecRdv;
+    } catch (error) {
+        console.error("Erreur lors de la récupération des rendez-vous :", error);
+        throw error;
+    }
+};
+
+const getRendezVousSansModification = async (date,id_rendezvous) => {
+    try {
+        const allRendezVous = await RendezVous.find(
+            { date_rdv: date , _id : { $ne: id_rendezvous } , etat : {$gte : 5} }
+        )
+        .populate('mecanicien_id')
+        .populate('service_id');
+        const allMecanicien = await getAllMecanicien();
+        const allMecanicienAvecRdv = [];
+        
+        for(const meca of allMecanicien){
+            const mecanicienAvecRdv = {
+                mecanicien: meca,
+                rendez_vous: []
+            }
+
+            for(const rendezVous of allRendezVous){
+                if(rendezVous?.mecanicien_id._id.toString() === meca._id.toString()){
                     mecanicienAvecRdv.rendez_vous.push(convertRendezVousEnIntervalle(rendezVous));
                 }
             }
@@ -180,6 +211,7 @@ const creneauPossibleAvecMecanicien = async (service_id,date) =>{
         }
 
         const creneauLibreDuMeca = findCreneauLibreMecanicien(allRendezVousMecanicien[i]);
+        
 
         // prend les créneaux possibles par rapport aux service
         for(let j=0 ; j < creneauLibreDuMeca.length ; j++){
@@ -203,11 +235,28 @@ const creneauPossibleAvecMecanicien = async (service_id,date) =>{
     return toutCreneauPossible;
 }
 
+const creneauLibreAvecMecanicien = async(date,id_rendezvous) =>{
+    const allRendezVousMeca = await getRendezVousSansModification(date,id_rendezvous);
+
+    const toutCreneauPossible = [];
+
+    for(let i = 0 ; i < allRendezVousMeca.length ; i++){
+        const creneauPossible = {
+            mecanicien: allRendezVousMeca[i].mecanicien,
+            creneau: []
+        }
+        const creneauLibre = await findCreneauLibreMecanicien(allRendezVousMeca[i]);
+        creneauPossible.creneau = creneauLibre;
+        toutCreneauPossible.push(creneauPossible);
+    }
+
+    return toutCreneauPossible;
+}
+
 
 const trierCreneauPossibleJour = async(date_rdv,service_id) =>{
    
     const toutCreneauPossible = await creneauPossibleAvecMecanicien(service_id, date_rdv);
-   
     console.log("tout creneau possible avec meca : " + toutCreneauPossible);
 
     const creneauxUniq = [];
@@ -246,9 +295,12 @@ const propositionMecanicienMoinsDeCharge = async (toutCreneau , creneauChoisi , 
       
           const creneauFiltrer = toutCreneau.filter((creneauPossible) => {
             if (creneauPossible.creneau && Array.isArray(creneauPossible.creneau)) {
-              return creneauPossible.creneau.some((creneau) => {
-                if (Array.isArray(creneau) && creneau.length === 2) {
-                  return creneau[0] === creneauChoisi[0] && creneau[1] === creneauChoisi[1];
+              return creneauPossible.creneau.some((cren) => {
+                if (Array.isArray(cren) && cren.length === 2) {
+                    const debutPossible = cren[0];
+                    const finPossible = cren[1];
+
+                    return creneauChoisi[0] >= debutPossible && creneauChoisi[1] <= finPossible;
                 }
                 return false;
               });
@@ -296,12 +348,15 @@ const propositionMecanicienPourService = async(toutCreneau , creneauChoisi , dat
       
         const creneauFiltrer = toutCreneau.filter((creneauPossible) => {
             if (creneauPossible.creneau && Array.isArray(creneauPossible.creneau)) {
-              return creneauPossible.creneau.some((creneau) => {
-                if (Array.isArray(creneau) && creneau.length === 2) {
-                  return creneau[0] === creneauChoisi[0] && creneau[1] === creneauChoisi[1];
-                }
-                return false;
-              });
+                return creneauPossible.creneau.some((cren) => {
+                    if (Array.isArray(cren) && cren.length === 2) {
+                        const debutPossible = cren[0];
+                        const finPossible = cren[1];
+
+                        return creneauChoisi[0] >= debutPossible && creneauChoisi[1] <= finPossible;
+                    }
+                    return false;
+                });
             }
             return false;
         });
@@ -328,5 +383,7 @@ module.exports = {
     creneauPossibleAvecMecanicien,
     trierCreneauPossibleJour,
     propositionMecanicienMoinsDeCharge,
-    propositionMecanicienPourService
+    propositionMecanicienPourService,
+    creneauLibreAvecMecanicien,
+    getRendezVousSansModification
 }

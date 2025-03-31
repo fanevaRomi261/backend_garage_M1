@@ -15,6 +15,7 @@ router.get("/test" , planningController.getTempsLibreMecanicien);
 
 router.post("/proposeCreneau" , planningController.getCreneauPossibleJournee);
 
-router.post("/changement-mecanicien" , planningController.proposeChangementMecanicien);
+router.post("/mecanicien/libre" , planningController.proposeChangementMecanicien);
+
 
 module.exports = router;
