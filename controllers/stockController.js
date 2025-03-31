@@ -10,6 +10,9 @@ exports.ajouterEntreeStock = async (req, res) => {
   try {
     let { piece_id, date_entree, quantite } = req.body;
 
+    if (quantite <= 0) {
+      return res.status(400).json({ message: "La quantité doit supérieur à 0" });
+    }
     const entree = new Stock({
       piece_id,
       date_entree,
@@ -83,6 +86,10 @@ exports.getStock = async (req, res) => {
 exports.ajouterDetailReparation = async (req, res) => {
   try {
     let { reparation_id, piece_id, quantite } = req.body;
+
+    if (quantite <= 0) {
+      return res.status(400).json({ message: "La quantité doit supérieur à 0" });
+    }
 
     const resteEnStock = await pieceService.getStockRestantParPiece(piece_id);
 
