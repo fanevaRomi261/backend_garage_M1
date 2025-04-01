@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Time = require("../shared/Time");
+const Etat = require("../shared/Etat");
 
 const RendezVousSchema = new mongoose.Schema(
   {
