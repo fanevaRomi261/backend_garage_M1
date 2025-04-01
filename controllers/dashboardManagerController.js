@@ -268,7 +268,7 @@ const getAverageRepairTime = async (req, res) => {
 const depenseMoyenneParReparation = async (req, res) => {
   try {
     const reparations = await Reparation.find({
-      datefin: { $gt: '$datedebut' }
+      $expr: { $gt: ["$date_fin", "$date_debut"] }
     }).populate(
       "detail_reparation_id"
     );
