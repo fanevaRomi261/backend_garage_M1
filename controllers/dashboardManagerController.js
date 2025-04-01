@@ -203,13 +203,13 @@ const getTopClients = async (req, res) => {
       },
     ]);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: topClients,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Erreur lors de la récupération des top clients",
       error: error.message,
@@ -220,6 +220,11 @@ const getTopClients = async (req, res) => {
 const getAverageRepairTime = async (req, res) => {
   try {
     const result = await Reparation.aggregate([
+      {
+        $match: {
+          $expr: { $gt: ["$date_fin", "$date_debut"] }, // Vérifie que date_fin > date_debut
+        },
+      },
       {
         $project: {
           duration: { $subtract: ["$date_fin", "$date_debut"] },
@@ -262,12 +267,14 @@ const getAverageRepairTime = async (req, res) => {
 
 const depenseMoyenneParReparation = async (req, res) => {
   try {
-    const reparations = await Reparation.find().populate(
+    const reparations = await Reparation.find({
+      datefin: { $gt: '$datedebut' }
+    }).populate(
       "detail_reparation_id"
     );
 
     if (reparations.length === 0) {
-      res.status(404).json({ message: "Aucune réparation trouvée." });
+      return res.status(404).json({ message: "Aucune réparation trouvée." });
     }
 
     let sommeTotale = 0;
@@ -304,6 +311,7 @@ const getChiffreParMois = async (req, res) => {
     const result = await Reparation.aggregate([
       {
         $match: {
+          $expr: { $gt: ["$date_fin", "$date_debut"] },
           date_debut: {
             $gte: new Date(`${year}-01-01`),
             $lt: new Date(`${year + 1}-01-01`),
