@@ -3,7 +3,10 @@ const Stock = require("../models/Stock");
 const DetailReparation = require("../models/DetailReparation");
 const Reparation = require("../models/Reparation");
 const pieceService = require("../services/pieceService");
+const RendezVous = require("../models/RendezVous");
 const mongoose = require("mongoose");
+const Vehicule = require("../models/Vehicule");
+const Piece = require("../models/Piece");
 
 // entree
 exports.ajouterEntreeStock = async (req, res) => {
@@ -93,10 +96,24 @@ exports.ajouterDetailReparation = async (req, res) => {
 
     const resteEnStock = await pieceService.getStockRestantParPiece(piece_id);
 
-    const reparation = await Reparation.findById(reparation_id);
+    const reparation = await Reparation.findById(reparation_id).populate('rendez_vous_id');
     // console.log(reparation);
     if (!reparation) {
       return res.status(404).json({ message: "Réparation non trouvée" });
+    }
+
+    const vehiculeId = reparation.rendez_vous_id.id_voiture;
+    const vehicule = await Vehicule.findById(vehiculeId).populate('type_vehicule_id');
+
+    const piece = await Piece.findById(piece_id);
+
+    const typeVehiculePiece = piece.type_vehicule_id;
+    const typeVehiculeVehicule = vehicule.type_vehicule_id._id;
+
+    if (!typeVehiculePiece.includes(typeVehiculeVehicule)) {
+      return res.status(422).json({
+        message: "Cette pièce n'est pas compatible avec ce type de véhicule",
+      });
     }
 
     if (resteEnStock < quantite) {
@@ -127,6 +144,7 @@ exports.ajouterDetailReparation = async (req, res) => {
       detailReparation,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
