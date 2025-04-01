@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const planningController = require('../controllers/planningController');
 const rendezvousController = require('../controllers/rendezVousController');
+const { verifToken,verifProfil } = require('../middlewares/authMiddleware');
 
 router.post("/save",planningController.addRendezVous);
 
@@ -17,7 +18,11 @@ router.put("/update", rendezvousController.updateRendezVous);
 
 router.put("/annuler/:id_rendezvous" , rendezvousController.annulerRendezVous);
 
+
+router.get("/mes-rdv/:idClient" , verifToken,rendezvousController.getRendezVousClient);
+
 router.get("/reparation/:id_rendezvous" , rendezvousController.findReparationForRendezVous);
+
 
 router.get("/")
 
