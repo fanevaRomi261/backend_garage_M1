@@ -94,6 +94,18 @@ exports.closeReparation = async(req,res) => {
   }
 }
 
+exports.findReparationById = async(req,res) =>{
+  try{
+    const {id_reparation} = req.params;
+
+    const reparation = await Reparation.findOne({_id:id_reparation}).populate("detail_reparation_id");
+    res.json(reparation);
+  }catch(error){
+    res.status(500).json({
+      message: "Réparation non trouvée : " + error.message,
+    });
+  }
+}
 
 exports.payerReparation = async(req,res) => {
   try{

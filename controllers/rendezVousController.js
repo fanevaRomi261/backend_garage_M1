@@ -4,6 +4,7 @@ const Utilisateur = require("../models/Utilisateur");
 const rendezvousService = require("../services/rendezvousService");
 const planningService = require("../services/planningService");
 const Time = require("../shared/Time");
+const Reparation = require("../models/Reparation");
 
 exports.getAllRendezVous = async (req, res) => {
     try {
@@ -197,3 +198,12 @@ exports.getRendezVousClient = async(req, res) => {
     }
 }
  
+exports.findReparationForRendezVous = async(req,res) => {
+    try{
+        const {id_rendezvous} = req.params;
+        const reparation = await Reparation.findOne({rendez_vous_id:id_rendezvous}).populate("detail_reparation_id");
+        res.json(reparation);
+    }catch(error){
+        res.status(500).json({message : error.message});
+    }
+}

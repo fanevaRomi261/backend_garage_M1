@@ -7,6 +7,8 @@ const { verifToken } = require('../middlewares/authMiddleware');
 // liste reparation d'un vehicule
 router.get("/vehicule/:idvehicule",verifToken,reparationController.getReparationsByVehiculeId);
 
+router.get("/find/:id_reparation" , reparationController.findReparationById);
+
 router.post("/commencer", reparationController.commencerReparation);
 
 router.post("/terminer" , reparationController.closeReparation);
