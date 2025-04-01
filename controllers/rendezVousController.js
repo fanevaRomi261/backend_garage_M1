@@ -3,6 +3,7 @@ const planningController = require("../controllers/planningController");
 const Utilisateur = require("../models/Utilisateur");
 const rendezvousService = require("../services/rendezvousService");
 const planningService = require("../services/planningService");
+const Time = require("../shared/Time");
 
 exports.getAllRendezVous = async (req, res) => {
     try {
@@ -141,17 +142,58 @@ exports.getRendezVousEmploye = async(req,res) =>{
     }
 }
 
-exports.annulerRendezVous = async(req,res) =>{
-    try{    
-        const {id_rendezvous} = req.params;
+exports.annulerRendezVous = async (req, res) => {
+    try {
+        const { id_rendezvous } = req.params;
 
-        const rendezvous = await RendezVous.findOneAndUpdate({_id: id_rendezvous} , {etat : 0});
-        rendezvous.save();
-        res.status(200).json("Rendez vous annulé");
-        console.log("nety");
+        const rendezvous = await RendezVous.findOne({ _id: id_rendezvous });
 
+        if (rendezvous.etat !== 5) {
+            return res.status(400).json({ message: "Annulation impossible, l'état n'est pas correct." });
+        }
+
+        const rdvDate = new Date(rendezvous.date_rdv);
+        const { hours, minutes } = rendezvous.heure_rdv;
+        rdvDate.setHours(hours, minutes, 0, 0);
+
+        const current_date = new Date();
+
+        // console.log(rdvDate+" = "+current_date);
+        if (rdvDate < current_date) {
+            return res.status(400).json({ message: "Annulation impossible, le rendez-vous est déjà passé." });
+        }
+
+        rendezvous.etat = 0;
+        await rendezvous.save();
+
+        res.status(200).json({ message : "Rendez-vous annulé avec succès."});
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+
+// rendez vous rehatra anle client
+exports.getRendezVousClient = async(req, res) => {
+    try{
+        const {idClient} = req.params;     
+        
+        const listeRendezVous = await RendezVous.find({
+            client_id: idClient, 
+        })
+        .lean()
+        .populate("mecanicien_id")
+        .populate("service_id")
+        .populate("client_id")
+        .populate("id_voiture");
+
+        if (!listeRendezVous || listeRendezVous.length === 0) {
+            return res.json([]);
+        }
+
+        res.json(listeRendezVous);
     }catch(error){
-        res.status(500).json({message : error.message});
+        res.status(500).json({message: error.message});
     }
 }
  
