@@ -5,17 +5,17 @@ const rendezvousController = require("../controllers/rendezVousController");
 const { verifToken } = require("../middlewares/authMiddleware");
 
 // getAllMeca
-router.get("/mecanicien" , planningController.getAllMecanicien);
+router.get("/mecanicien",verifToken,planningController.getAllMecanicien);
 
-router.get("/rendezvous", rendezvousController.getAllRendezVous);
+router.get("/rendezvous",verifToken,rendezvousController.getAllRendezVous);
 
-router.get("/rendezvousdate" , planningController.getRendezVousFromDate);
+router.get("/rendezvousdate",verifToken,planningController.getRendezVousFromDate);
 
-router.get("/test" , planningController.getTempsLibreMecanicien);
+router.get("/test",verifToken,planningController.getTempsLibreMecanicien);
 
-router.post("/proposeCreneau" , planningController.getCreneauPossibleJournee);
+router.post("/proposeCreneau",verifToken,planningController.getCreneauPossibleJournee);
 
-router.post("/mecanicien/libre" , planningController.proposeChangementMecanicien);
+router.post("/mecanicien/libre",verifToken,planningController.proposeChangementMecanicien);
 
 
 module.exports = router;
