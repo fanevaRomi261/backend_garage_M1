@@ -4,24 +4,24 @@ const planningController = require('../controllers/planningController');
 const rendezvousController = require('../controllers/rendezVousController');
 const { verifToken,verifProfil } = require('../middlewares/authMiddleware');
 
-router.post("/save",planningController.addRendezVous);
+router.post("/save",verifToken,planningController.addRendezVous);
 
-router.post("/find" , rendezvousController.getRendezVousById);
+router.post("/find",verifToken, rendezvousController.getRendezVousById);
 
-router.get("/futur/:idClient" , rendezvousController.getFuturRendezVousClient);
+router.get("/futur/:idClient",verifToken,rendezvousController.getFuturRendezVousClient);
 
 // router.get("/mecanicien/:idMecanicien" , rendezvousController.getRendezVousSemaineMecanicien);
 
-router.get("/employe/:idEmploye" , rendezvousController.getRendezVousEmploye);
+router.get("/employe/:idEmploye",verifToken,rendezvousController.getRendezVousEmploye);
 
-router.put("/update", rendezvousController.updateRendezVous);
+router.put("/update",verifToken,rendezvousController.updateRendezVous);
 
-router.put("/annuler/:id_rendezvous" , rendezvousController.annulerRendezVous);
+router.put("/annuler/:id_rendezvous",verifToken,rendezvousController.annulerRendezVous);
 
 
 router.get("/mes-rdv/:idClient" , verifToken,rendezvousController.getRendezVousClient);
 
-router.get("/reparation/:id_rendezvous" , rendezvousController.findReparationForRendezVous);
+router.get("/reparation/:id_rendezvous",verifToken ,rendezvousController.findReparationForRendezVous);
 
 
 router.get("/")
